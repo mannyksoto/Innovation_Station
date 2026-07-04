@@ -4,32 +4,59 @@ import pandas as pd
 import csv
 import os
 
-st.set_page_config(page_title="Clarity Hours Logger", layout="wide")
-st.title("clarity.")
-st.markdown("### Tech Hours Logger")
+st.set_page_config(page_title="Clarity Hours Logger", layout="centered")
 
-# User selection (simple for demo)
-users = ["Manny Soto", "Admin", "Other"]
-current_user = st.selectbox("Select User", users)
+# Hardcoded users
+USERS = {
+    "Manny Soto": "1234",
+    "Admin": "admin",
+}
 
-# Session state
-if 'clock_in_time' not in st.session_state:
+# Initialize session state
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.current_user = None
     st.session_state.clock_in_time = None
     st.session_state.active_job_site = None
     st.session_state.active_job_number = None
     st.session_state.active_job_type = None
 
-# Form
+# ---------------- LOGIN SCREEN ----------------
+if not st.session_state.logged_in:
+    st.title("clarity.")
+    st.subheader("Login")
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if st.button("Login", type="primary", use_container_width=True):
+            if username in USERS and USERS[username] == password:
+                st.session_state.logged_in = True
+                st.session_state.current_user = username
+                st.success(f"Welcome, {username}!")
+                st.rerun()
+            else:
+                st.error("Incorrect username or password")
+
+    st.stop()  # Stop execution until logged in
+
+# ---------------- MAIN APP (after login) ----------------
+st.title("clarity.")
+st.write(f"**Logged in as:** {st.session_state.current_user}")
+
+# Form inputs
 col1, col2 = st.columns(2)
 with col1:
-    job_site = st.text_input("Job Site", value="Clarity" if current_user else "")
+    job_site = st.text_input("Job Site", value="")
 with col2:
     job_number = st.text_input("Job Number")
 
 job_type = st.selectbox("Job Type", ["Installation", "Repair", "Maintenance", "Service Call", "Other"])
 
-# Buttons
-col1, col2, col3, col4 = st.columns(4)
+# Action buttons
+col1, col2, col3 = st.columns(3)
 
 if col1.button("Clock In", type="primary", use_container_width=True):
     if job_site and job_number:
@@ -37,9 +64,9 @@ if col1.button("Clock In", type="primary", use_container_width=True):
         st.session_state.active_job_site = job_site
         st.session_state.active_job_number = job_number
         st.session_state.active_job_type = job_type
-        st.success(f"Clocked In at {st.session_state.clock_in_time.strftime('%I:%M %p')}")
+        st.success(f"✅ Clocked In at {st.session_state.clock_in_time.strftime('%I:%M %p')}")
     else:
-        st.error("Job Site and Job Number required")
+        st.error("Job Site and Job Number are required")
 
 if col2.button("Clock Out", type="secondary", use_container_width=True):
     if st.session_state.clock_in_time:
@@ -50,7 +77,7 @@ if col2.button("Clock Out", type="secondary", use_container_width=True):
         m = total_min % 60
 
         row = [
-            current_user,
+            st.session_state.current_user,
             end.strftime("%m/%d/%Y"),
             st.session_state.active_job_site,
             st.session_state.active_job_number,
@@ -64,24 +91,36 @@ if col2.button("Clock Out", type="secondary", use_container_width=True):
             writer = csv.writer(f)
             writer.writerow(row)
 
-        st.success(f"Clocked Out - {h} Hours and {m} Minutes")
+        st.success(f"✅ Clocked Out — {h} Hours and {m} Minutes")
         st.session_state.clock_in_time = None
     else:
-        st.warning("Not clocked in")
+        st.warning("You are not clocked in")
 
 if col3.button("Export CSV", use_container_width=True):
     if os.path.exists("hours_log.csv"):
         df = pd.read_csv("hours_log.csv")
-        st.download_button("Download CSV", df.to_csv(index=False), "hours_log.csv", "text/csv")
+        st.download_button(
+            label="Download hours_log.csv",
+            data=df.to_csv(index=False),
+            file_name="hours_log.csv",
+            mime="text/csv"
+        )
     else:
-        st.info("No records yet")
+        st.info("No records yet.")
 
-# Show current status
+# Show active status
 if st.session_state.clock_in_time:
-    st.info(f"**ACTIVE**: {st.session_state.active_job_site} | {st.session_state.active_job_number}")
+    st.info(f"**ACTIVE JOB**: {st.session_state.active_job_site} | #{st.session_state.active_job_number} | {st.session_state.active_job_type}")
 
 # Show history
+st.subheader("Hours History")
 if os.path.exists("hours_log.csv"):
-    st.subheader("Hours History")
     df = pd.read_csv("hours_log.csv")
     st.dataframe(df, use_container_width=True)
+else:
+    st.info("No hours logged yet.")
+
+# Logout button
+if st.button("Logout"):
+    st.session_state.logged_in = False
+    st.rerun()
