@@ -41,7 +41,6 @@ defaults = {
     "active_job_site": None,
     "active_job_number": None,
     "active_job_type": None,
-    "show_transfer": False,
 }
 
 for key, value in defaults.items():
@@ -83,7 +82,80 @@ def save_row(row):
             ])
 
         writer.writerow(row)
+# ==========================
+# TRANSFER DIALOG
+# ==========================
 
+@st.dialog("Transfer Job")
+def transfer_dialog():
+
+    new_site = st.selectbox(
+        "New Site",
+        ["Clarity"]
+    )
+
+    new_job = st.selectbox(
+        "New Job #",
+        [
+            "Clarityadmin",
+            "Clarity Drivetime"
+        ]
+    )
+
+    new_type = st.selectbox(
+        "New Job Type",
+        [
+            "Installation",
+            "Repair",
+            "Maintenance",
+            "Service Call",
+            "Other"
+        ]
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button("Submit Transfer", type="primary"):
+
+            end = now()
+
+            hours = round(
+                (
+                    end -
+                    st.session_state.clock_in_time
+                ).total_seconds() / 3600,
+                2
+            )
+
+            row = [
+                st.session_state.current_user,
+                end.strftime("%m/%d/%Y"),
+                st.session_state.active_job_site,
+                st.session_state.active_job_number,
+                st.session_state.active_job_type,
+                st.session_state.clock_in_time.strftime("%I:%M %p"),
+                end.strftime("%I:%M %p"),
+                format_hours(hours)
+            ]
+
+            save_row(row)
+
+            # immediately begin new job
+
+            st.session_state.clock_in_time = now()
+            st.session_state.active_job_site = new_site
+            st.session_state.active_job_number = new_job
+            st.session_state.active_job_type = new_type
+
+            st.success("Transfer completed successfully")
+            st.rerun()
+
+    with col2:
+
+        if st.button("Cancel"):
+            st.rerun()
 # ==========================
 # LOGIN
 # ==========================
@@ -276,17 +348,6 @@ if b2.button(
 
         st.success("Clocked out successfully")
 
-# TRANSFER
-
-if b3.button(
-    "Transfer",
-    use_container_width=True
-):
-
-    if not st.session_state.clock_in_time:
-        st.error("Not clocked in")
-    else:
-        st.session_state.show_transfer = True
 
 # EXPORT
 
