@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import pandas as pd
 import csv
 import os
@@ -12,6 +13,13 @@ st.set_page_config(
     page_title="Clarity Time Tracker",
     layout="wide"
 )
+
+# ==========================
+# TIMEZONE
+# ==========================
+
+def now():
+    return datetime.now(ZoneInfo("America/Chicago"))
 
 # ==========================
 # USERS
@@ -33,6 +41,7 @@ defaults = {
     "active_job_site": None,
     "active_job_number": None,
     "active_job_type": None,
+    "show_transfer": False,
 }
 
 for key, value in defaults.items():
@@ -97,7 +106,6 @@ if not st.session_state.logged_in:
 
             st.session_state.logged_in = True
             st.session_state.current_user = username
-
             st.rerun()
 
         else:
@@ -119,7 +127,7 @@ st.write(
 )
 
 # ==========================
-# ACTIVE BANNER
+# ACTIVE JOB BANNER
 # ==========================
 
 if st.session_state.clock_in_time:
@@ -131,19 +139,19 @@ if st.session_state.clock_in_time:
             color:#00E5FF;
             padding:15px;
             border-radius:10px;
-            font-weight:bold;
             text-align:center;
+            font-weight:bold;
             margin-bottom:20px;
         ">
         ACTIVE:
         {st.session_state.active_job_site}
         |
-        #{st.session_state.active_job_number}
+        {st.session_state.active_job_number}
         |
         {st.session_state.active_job_type}
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 else:
@@ -155,18 +163,18 @@ else:
             color:#00E5FF;
             padding:15px;
             border-radius:10px;
-            font-weight:bold;
             text-align:center;
+            font-weight:bold;
             margin-bottom:20px;
         ">
         NO ACTIVE JOB
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 # ==========================
-# FORM
+# JOB FORM
 # ==========================
 
 col1, col2, col3 = st.columns(3)
@@ -179,7 +187,7 @@ with col1:
 
 with col2:
     job_number = st.selectbox(
-        "Job #",
+        "Job Number",
         [
             "Clarityadmin",
             "Clarity Drivetime"
@@ -208,24 +216,24 @@ b1, b2, b3, b4 = st.columns(4)
 
 if b1.button(
     "Clock In",
-    use_container_width=True,
-    type="primary"
+    type="primary",
+    use_container_width=True
 ):
 
     if st.session_state.clock_in_time:
+
         st.error("Already clocked in")
 
     else:
 
-        st.session_state.clock_in_time = datetime.now()
+        st.session_state.clock_in_time = now()
 
         st.session_state.active_job_site = job_site
         st.session_state.active_job_number = job_number
         st.session_state.active_job_type = job_type
 
         st.success(
-            f"Clocked in at "
-            f"{st.session_state.clock_in_time.strftime('%I:%M %p')}"
+            f"Clocked in at {st.session_state.clock_in_time.strftime('%I:%M %p')}"
         )
 
 # CLOCK OUT
@@ -241,13 +249,10 @@ if b2.button(
 
     else:
 
-        end = datetime.now()
+        end = now()
 
         hours = round(
-            (
-                end -
-                st.session_state.clock_in_time
-            ).total_seconds() / 3600,
+            (end - st.session_state.clock_in_time).total_seconds() / 3600,
             2
         )
 
@@ -279,41 +284,9 @@ if b3.button(
 ):
 
     if not st.session_state.clock_in_time:
-
         st.error("Not clocked in")
-
     else:
-
-        end = datetime.now()
-
-        hours = round(
-            (
-                end -
-                st.session_state.clock_in_time
-            ).total_seconds() / 3600,
-            2
-        )
-
-        row = [
-            st.session_state.current_user,
-            end.strftime("%m/%d/%Y"),
-            st.session_state.active_job_site,
-            st.session_state.active_job_number,
-            st.session_state.active_job_type,
-            st.session_state.clock_in_time.strftime("%I:%M %p"),
-            end.strftime("%I:%M %p"),
-            format_hours(hours)
-        ]
-
-        save_row(row)
-
-        st.session_state.clock_in_time = datetime.now()
-
-        st.session_state.active_job_site = job_site
-        st.session_state.active_job_number = job_number
-        st.session_state.active_job_type = job_type
-
-        st.success("Transfer complete")
+        st.session_state.show_transfer = True
 
 # EXPORT
 
@@ -321,10 +294,7 @@ with b4:
 
     if os.path.exists("hours_log.csv"):
 
-        with open(
-            "hours_log.csv",
-            "rb"
-        ) as file:
+        with open("hours_log.csv", "rb") as file:
 
             st.download_button(
                 "Export CSV",
@@ -335,31 +305,119 @@ with b4:
             )
 
 # ==========================
-# HISTORY
+# TRANSFER WINDOW
 # ==========================
 
-st.subheader("Hours History")
+if st.session_state.show_transfer:
 
-if os.path.exists("hours_log.csv"):
+    st.divider()
 
-    df = pd.read_csv("hours_log.csv")
+    with st.container(border=True):
 
-    st.dataframe(
-        df,
-        use_container_width=True
-    )
+        st.subheader("Transfer Job")
 
-else:
+        new_site = st.selectbox(
+            "New Site",
+            ["Clarity"],
+            key="transfer_site"
+        )
 
-    st.info("No logged hours yet.")
+        new_job = st.selectbox(
+            "New Job #",
+            [
+                "Clarityadmin",
+                "Clarity Drivetime"
+            ],
+            key="transfer_job"
+        )
+
+        new_type = st.selectbox(
+            "New Job Type",
+            [
+                "Installation",
+                "Repair",
+                "Maintenance",
+                "Service Call",
+                "Other"
+            ],
+            key="transfer_type"
+        )
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+
+            if st.button("Submit Transfer"):
+
+                end = now()
+
+                hours = round(
+                    (end - st.session_state.clock_in_time).total_seconds() / 3600,
+                    2
+                )
+
+                row = [
+                    st.session_state.current_user,
+                    end.strftime("%m/%d/%Y"),
+                    st.session_state.active_job_site,
+                    st.session_state.active_job_number,
+                    st.session_state.active_job_type,
+                    st.session_state.clock_in_time.strftime("%I:%M %p"),
+                    end.strftime("%I:%M %p"),
+                    format_hours(hours)
+                ]
+
+                save_row(row)
+
+                st.session_state.clock_in_time = now()
+
+                st.session_state.active_job_site = new_site
+                st.session_state.active_job_number = new_job
+                st.session_state.active_job_type = new_type
+
+                st.session_state.show_transfer = False
+
+                st.success("Transfer Complete")
+                st.rerun()
+
+        with c2:
+
+            if st.button("Cancel Transfer"):
+
+                st.session_state.show_transfer = False
+                st.rerun()
+
+# ==========================
+# ADMIN HISTORY ONLY
+# ==========================
+
+if st.session_state.current_user == "Admin":
+
+    st.divider()
+    st.subheader("Hours History")
+
+    if os.path.exists("hours_log.csv"):
+
+        df = pd.read_csv("hours_log.csv")
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+    else:
+
+        st.info("No logged hours yet.")
 
 # ==========================
 # LOGOUT
 # ==========================
 
+st.divider()
+
 if st.button("Logout"):
 
-    for key in defaults:
-        st.session_state[key] = defaults[key]
+    for key, value in defaults.items():
+        st.session_state[key] = value
 
     st.rerun()
