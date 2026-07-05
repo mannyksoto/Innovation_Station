@@ -5,7 +5,8 @@ import csv
 import re
 import sys
 import os
-
+def run_app(): 
+    
 # ================== USER ==================
 current_user = sys.argv[1] if len(sys.argv) > 1 else "Manny Soto"
 
@@ -299,5 +300,6 @@ for c in columns:
     tree.column(c, width=130)
 
 tree.pack(fill="both", expand=True, padx=20, pady=10)
+run_app()
 
 root.mainloop()
