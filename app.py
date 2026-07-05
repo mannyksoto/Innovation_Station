@@ -348,7 +348,15 @@ if b2.button(
 
         st.success("Clocked out successfully")
 
+if b3.button(
+    "Transfer",
+    use_container_width=True
+):
 
+    if not st.session_state.clock_in_time:
+        st.error("Not clocked in")
+    else:
+        transfer_dialog()
 # EXPORT
 
 with b4:
