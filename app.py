@@ -2,82 +2,254 @@ import streamlit as st
 from datetime import datetime
 import pandas as pd
 import csv
-import os 
+import os
 
+# ==========================
+# PAGE CONFIG
+# ==========================
 
-st.set_page_config(page_title="Clarity Hours Logger", layout="wide")
+st.set_page_config(
+    page_title="Clarity Time Tracker",
+    layout="wide"
+)
 
-# Users
+# ==========================
+# USERS
+# ==========================
+
 USERS = {
     "Manny Soto": "1234",
     "Admin": "admin",
 }
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.current_user = None
-    st.session_state.clock_in_time = None
-    st.session_state.active_job_site = None
-    st.session_state.active_job_number = None
-    st.session_state.active_job_type = None
+# ==========================
+# SESSION STATE
+# ==========================
 
+defaults = {
+    "logged_in": False,
+    "current_user": None,
+    "clock_in_time": None,
+    "active_job_site": None,
+    "active_job_number": None,
+    "active_job_type": None,
+}
+
+for key, value in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
+# ==========================
+# HELPERS
+# ==========================
+
+def format_hours(hours_decimal):
+    mins = int(round(hours_decimal * 60))
+    return f"{mins // 60} Hours {mins % 60} Minutes"
+
+
+def save_row(row):
+
+    file_exists = os.path.exists("hours_log.csv")
+
+    with open(
+        "hours_log.csv",
+        "a",
+        newline="",
+        encoding="utf-8"
+    ) as f:
+
+        writer = csv.writer(f)
+
+        if not file_exists:
+            writer.writerow([
+                "Tech",
+                "Date",
+                "Site",
+                "Job #",
+                "Type",
+                "Start",
+                "End",
+                "Hours"
+            ])
+
+        writer.writerow(row)
+
+# ==========================
 # LOGIN
+# ==========================
+
 if not st.session_state.logged_in:
-    st.title("clarity.")
+
+    st.markdown(
+        "<h1 style='color:#00E5FF'>clarity.</h1>",
+        unsafe_allow_html=True
+    )
+
     st.subheader("Login")
+
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    
+
     if st.button("Login", type="primary"):
+
         if username in USERS and USERS[username] == password:
+
             st.session_state.logged_in = True
             st.session_state.current_user = username
+
             st.rerun()
+
         else:
-            st.error("Invalid credentials")
+            st.error("Incorrect username or password")
+
     st.stop()
 
-# MAIN APP
-st.title("clarity.")
-st.write(f"Logged in as: **{st.session_state.current_user}**")
+# ==========================
+# HEADER
+# ==========================
 
-# Dynamic Job Number options
-def get_job_numbers(site):
-    if site == "Clarity":
-        return ["Clarityadmin", "Clarity Drivetime"]
-    return ["Clarityadmin", "Clarity Drivetime"]
+st.markdown(
+    "<h1 style='color:#00E5FF'>clarity.</h1>",
+    unsafe_allow_html=True
+)
 
-# Form
+st.write(
+    f"Logged in as **{st.session_state.current_user}**"
+)
+
+# ==========================
+# ACTIVE BANNER
+# ==========================
+
+if st.session_state.clock_in_time:
+
+    st.markdown(
+        f"""
+        <div style="
+            background:#111;
+            color:#00E5FF;
+            padding:15px;
+            border-radius:10px;
+            font-weight:bold;
+            text-align:center;
+            margin-bottom:20px;
+        ">
+        ACTIVE:
+        {st.session_state.active_job_site}
+        |
+        #{st.session_state.active_job_number}
+        |
+        {st.session_state.active_job_type}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+else:
+
+    st.markdown(
+        """
+        <div style="
+            background:#111;
+            color:#00E5FF;
+            padding:15px;
+            border-radius:10px;
+            font-weight:bold;
+            text-align:center;
+            margin-bottom:20px;
+        ">
+        NO ACTIVE JOB
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# ==========================
+# FORM
+# ==========================
+
 col1, col2, col3 = st.columns(3)
+
 with col1:
-    job_site = st.text_input("Job Site", key="job_site")
+    job_site = st.selectbox(
+        "Job Site",
+        ["Clarity"]
+    )
+
 with col2:
-    job_number = st.selectbox("Job Number", options=get_job_numbers(job_site), key="job_number")
+    job_number = st.selectbox(
+        "Job #",
+        [
+            "Clarityadmin",
+            "Clarity Drivetime"
+        ]
+    )
+
 with col3:
-    job_type = st.selectbox("Job Type", 
-                           ["Installation", "Repair", "Maintenance", "Service Call", "Other"], 
-                           key="job_type")
+    job_type = st.selectbox(
+        "Job Type",
+        [
+            "Installation",
+            "Repair",
+            "Maintenance",
+            "Service Call",
+            "Other"
+        ]
+    )
 
-# Buttons
-col1, col2, col3, col4 = st.columns(4)
+# ==========================
+# BUTTONS
+# ==========================
 
-if col1.button("Clock In", type="primary", use_container_width=True):
-    if job_site and job_number:
+b1, b2, b3, b4 = st.columns(4)
+
+# CLOCK IN
+
+if b1.button(
+    "Clock In",
+    use_container_width=True,
+    type="primary"
+):
+
+    if st.session_state.clock_in_time:
+        st.error("Already clocked in")
+
+    else:
+
         st.session_state.clock_in_time = datetime.now()
+
         st.session_state.active_job_site = job_site
         st.session_state.active_job_number = job_number
         st.session_state.active_job_type = job_type
-        st.success(f"Clocked In at {st.session_state.clock_in_time.strftime('%I:%M %p')}")
-    else:
-        st.error("Job Site and Job Number required")
 
-if col2.button("Clock Out", type="secondary", use_container_width=True):
-    if st.session_state.clock_in_time:
+        st.success(
+            f"Clocked in at "
+            f"{st.session_state.clock_in_time.strftime('%I:%M %p')}"
+        )
+
+# CLOCK OUT
+
+if b2.button(
+    "Clock Out",
+    use_container_width=True
+):
+
+    if not st.session_state.clock_in_time:
+
+        st.error("Not clocked in")
+
+    else:
+
         end = datetime.now()
-        hours = round((end - st.session_state.clock_in_time).total_seconds() / 3600, 2)
-        total_min = int(hours * 60)
-        h = total_min // 60
-        m = total_min % 60
+
+        hours = round(
+            (
+                end -
+                st.session_state.clock_in_time
+            ).total_seconds() / 3600,
+            2
+        )
 
         row = [
             st.session_state.current_user,
@@ -87,40 +259,107 @@ if col2.button("Clock Out", type="secondary", use_container_width=True):
             st.session_state.active_job_type,
             st.session_state.clock_in_time.strftime("%I:%M %p"),
             end.strftime("%I:%M %p"),
-            f"{h} Hours and {m} Minutes"
+            format_hours(hours)
         ]
 
-        with open("hours_log.csv", "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow(row)
+        save_row(row)
 
-        st.success(f"Clocked Out - {h} Hours and {m} Minutes")
         st.session_state.clock_in_time = None
+        st.session_state.active_job_site = None
+        st.session_state.active_job_number = None
+        st.session_state.active_job_type = None
+
+        st.success("Clocked out successfully")
+
+# TRANSFER
+
+if b3.button(
+    "Transfer",
+    use_container_width=True
+):
+
+    if not st.session_state.clock_in_time:
+
+        st.error("Not clocked in")
+
     else:
-        st.warning("Not clocked in")
 
-if col3.button("Transfer", use_container_width=True):
-    st.info("Transfer function coming soon - let me know what you want here")
+        end = datetime.now()
 
-if col4.button("Export CSV", use_container_width=True):
+        hours = round(
+            (
+                end -
+                st.session_state.clock_in_time
+            ).total_seconds() / 3600,
+            2
+        )
+
+        row = [
+            st.session_state.current_user,
+            end.strftime("%m/%d/%Y"),
+            st.session_state.active_job_site,
+            st.session_state.active_job_number,
+            st.session_state.active_job_type,
+            st.session_state.clock_in_time.strftime("%I:%M %p"),
+            end.strftime("%I:%M %p"),
+            format_hours(hours)
+        ]
+
+        save_row(row)
+
+        st.session_state.clock_in_time = datetime.now()
+
+        st.session_state.active_job_site = job_site
+        st.session_state.active_job_number = job_number
+        st.session_state.active_job_type = job_type
+
+        st.success("Transfer complete")
+
+# EXPORT
+
+with b4:
+
     if os.path.exists("hours_log.csv"):
-        df = pd.read_csv("hours_log.csv")
-        st.download_button("Download CSV", df.to_csv(index=False), "hours_log.csv", "text/csv")
-    else:
-        st.info("No records yet")
 
-# Active Status
-if st.session_state.clock_in_time:
-    st.info(f"**ACTIVE**: {st.session_state.active_job_site} | #{st.session_state.active_job_number} | {st.session_state.active_job_type}")
+        with open(
+            "hours_log.csv",
+            "rb"
+        ) as file:
 
-# History
-st.subheader("History")
+            st.download_button(
+                "Export CSV",
+                file,
+                file_name="hours_log.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+
+# ==========================
+# HISTORY
+# ==========================
+
+st.subheader("Hours History")
+
 if os.path.exists("hours_log.csv"):
+
     df = pd.read_csv("hours_log.csv")
-    st.dataframe(df, use_container_width=True)
+
+    st.dataframe(
+        df,
+        use_container_width=True
+    )
+
 else:
-    st.info("No hours logged yet.")
+
+    st.info("No logged hours yet.")
+
+# ==========================
+# LOGOUT
+# ==========================
 
 if st.button("Logout"):
-    st.session_state.logged_in = False
+
+    for key in defaults:
+        st.session_state[key] = defaults[key]
+
     st.rerun()
