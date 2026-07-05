@@ -3,7 +3,9 @@ from datetime import datetime
 import pandas as pd
 import csv
 import os
+from main import run_app 
 
+run_app()
 st.set_page_config(page_title="Clarity Hours Logger", layout="wide")
 
 # Users
