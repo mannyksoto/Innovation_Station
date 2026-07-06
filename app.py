@@ -10,7 +10,7 @@ import os
 # ==========================
 
 st.set_page_config(
-    page_title="Clarity Time Tracker",
+    page_title="ClaritySync",
     layout="wide"
 )
 
