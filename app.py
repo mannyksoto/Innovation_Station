@@ -269,10 +269,9 @@ with col3:
     job_type = st.selectbox(
         "Job Type",
         [
-            "Installation",
-            "Repair",
-            "Maintenance",
-            "Service Call",
+            "Install",
+            "Preventative Maintenance",
+            "Service",
             "Other"
         ]
     )
