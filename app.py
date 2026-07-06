@@ -106,8 +106,7 @@ def transfer_dialog():
         "New Job Type",
         [
             "Installation",
-            "Repair",
-            "Maintenance",
+            "Preventative Maintanence",
             "Service Call",
             "Other"
         ]
@@ -190,7 +189,7 @@ if not st.session_state.logged_in:
 # ==========================
 
 st.markdown(
-    "<h1 style='color:#00E5FF'>clarity.</h1>",
+    "<h1 style='color:#00E5FF'>claritysync.</h1>",
     unsafe_allow_html=True
 )
 
