@@ -373,88 +373,8 @@ with b4:
                 use_container_width=True
             )
 
-# ==========================
-# TRANSFER WINDOW
-# ==========================
 
-if st.session_state.show_transfer:
 
-    st.divider()
-
-    with st.container(border=True):
-
-        st.subheader("Transfer Job")
-
-        new_site = st.selectbox(
-            "New Site",
-            ["Clarity"],
-            key="transfer_site"
-        )
-
-        new_job = st.selectbox(
-            "New Job #",
-            [
-                "Clarityadmin",
-                "Clarity Drivetime"
-            ],
-            key="transfer_job"
-        )
-
-        new_type = st.selectbox(
-            "New Job Type",
-            [
-                "Installation",
-                "Repair",
-                "Maintenance",
-                "Service Call",
-                "Other"
-            ],
-            key="transfer_type"
-        )
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-
-            if st.button("Submit Transfer"):
-
-                end = now()
-
-                hours = round(
-                    (end - st.session_state.clock_in_time).total_seconds() / 3600,
-                    2
-                )
-
-                row = [
-                    st.session_state.current_user,
-                    end.strftime("%m/%d/%Y"),
-                    st.session_state.active_job_site,
-                    st.session_state.active_job_number,
-                    st.session_state.active_job_type,
-                    st.session_state.clock_in_time.strftime("%I:%M %p"),
-                    end.strftime("%I:%M %p"),
-                    format_hours(hours)
-                ]
-
-                save_row(row)
-
-                st.session_state.clock_in_time = now()
-
-                st.session_state.active_job_site = new_site
-                st.session_state.active_job_number = new_job
-                st.session_state.active_job_type = new_type
-
-                st.session_state.show_transfer = False
-
-                st.success("Transfer Complete")
-                st.rerun()
-
-        with c2:
-
-            if st.button("Cancel Transfer"):
-
-                st.session_state.show_transfer = False
-                st.rerun()
 
 # ==========================
 # ADMIN HISTORY ONLY
