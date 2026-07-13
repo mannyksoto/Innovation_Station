@@ -26,7 +26,7 @@ def now():
 # ==========================
 
 USERS = {
-    "Manny.Soto": "12345",
+    "Manny.Soto".lower(): "12345",
     "Admin": "admin",
 }
 
