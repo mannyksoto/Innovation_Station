@@ -131,12 +131,12 @@ def save_jobs(jobs):
 @st.dialog("Transfer Job")
 def transfer_dialog():
 
-    job_site = st.selectbox(
+    new_site = st.selectbox(
     "Job Site",
     load_sites()
 )
 
-    job_number = st.selectbox(
+new_job = st.selectbox(
     "Job Number",
     load_jobs()
 )
