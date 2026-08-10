@@ -390,67 +390,10 @@ if b3.button(
 
     if not st.session_state.clock_in_time:
         st.error("Not clocked in")
+
     else:
         transfer_dialog()
 
-
-    st.divider()
-    st.subheader("Manage Job Sites")
-
-    sites = load_sites()
-
-    new_site = st.text_input(
-        "New Job Site"
-    )
-
-    if st.button("Add Site"):
-        if new_site:
-
-            if new_site not in sites:
-                sites.append(new_site)
-
-                save_sites(sites)
-
-                st.success(
-                    f"{new_site} added successfully."
-                )
-
-                st.rerun()
-
-            else:
-                st.warning(
-                    "Site already exists."
-                )
-
-    st.write("Current Job Numbers")
-
-for job in jobs:
-
-    col1, col2 = st.columns([4, 1])
-
-    with col1:
-        st.write(job)
-
-    with col2:
-        if st.button(
-            "Delete",
-            key=f"delete_job_{job}"
-        ):
-
-            jobs.remove(job)
-
-            save_jobs(jobs)
-
-            st.rerun()
-            else:
-                st.warning(
-                    "Job number already exists."
-                )
-
-    st.write("Current Job Numbers")
-
-    for job in jobs:
-        st.write(f"• {job}")
 # EXPORT
 
 with b4:
@@ -523,7 +466,7 @@ if st.session_state.current_user == "Admin":
                     "Site already exists."
                 )
 
- st.write("Current Sites")
+     st.write("Current Sites")
 
 for site in sites:
 
