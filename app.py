@@ -83,6 +83,47 @@ def save_row(row):
             ])
 
         writer.writerow(row)
+
+# ==========================
+# JOB SITE / JOB NUMBER HELPERS
+# ==========================
+
+def load_sites():
+    if os.path.exists("job_sites.csv"):
+        return pd.read_csv("job_sites.csv")["Site"].tolist()
+
+    return ["Clarity"]
+
+
+def load_jobs():
+    if os.path.exists("job_numbers.csv"):
+        return pd.read_csv("job_numbers.csv")["JobNumber"].tolist()
+
+    return [
+        "Clarityadmin",
+        "Clarity Drivetime"
+    ]
+
+
+def save_sites(sites):
+    pd.DataFrame(
+        {"Site": sites}
+    ).to_csv(
+        "job_sites.csv",
+        index=False
+    )
+
+
+def save_jobs(jobs):
+    pd.DataFrame(
+        {"JobNumber": jobs}
+    ).to_csv(
+        "job_numbers.csv",
+        index=False
+    )
+
+
+
 # ==========================
 # TRANSFER DIALOG
 # ==========================
@@ -90,18 +131,16 @@ def save_row(row):
 @st.dialog("Transfer Job")
 def transfer_dialog():
 
-    new_site = st.selectbox(
-        "New Site",
-        ["Clarity"]
-    )
+    job_site = st.selectbox(
+    "Job Site",
+    load_sites()
+)
 
-    new_job = st.selectbox(
-        "New Job #",
-        [
-            "Clarityadmin",
-            "Clarity Drivetime"
-        ]
-    )
+    job_number = st.selectbox(
+    "Job Number",
+    load_jobs()
+)
+
 
     new_type = st.selectbox(
         "New Job Type",
@@ -356,6 +395,73 @@ if b3.button(
         st.error("Not clocked in")
     else:
         transfer_dialog()
+
+
+    st.divider()
+    st.subheader("Manage Job Sites")
+
+    sites = load_sites()
+
+    new_site = st.text_input(
+        "New Job Site"
+    )
+
+    if st.button("Add Site"):
+        if new_site:
+
+            if new_site not in sites:
+                sites.append(new_site)
+
+                save_sites(sites)
+
+                st.success(
+                    f"{new_site} added successfully."
+                )
+
+                st.rerun()
+
+            else:
+                st.warning(
+                    "Site already exists."
+                )
+
+    st.write("Current Sites")
+
+    for site in sites:
+        st.write(f"• {site}")
+
+    st.divider()
+    st.subheader("Manage Job Numbers")
+
+    jobs = load_jobs()
+
+    new_job = st.text_input(
+        "New Job Number"
+    )
+
+    if st.button("Add Job Number"):
+        if new_job:
+
+            if new_job not in jobs:
+                jobs.append(new_job)
+
+                save_jobs(jobs)
+
+                st.success(
+                    f"{new_job} added successfully."
+                )
+
+                st.rerun()
+
+            else:
+                st.warning(
+                    "Job number already exists."
+                )
+
+    st.write("Current Job Numbers")
+
+    for job in jobs:
+        st.write(f"• {job}")
 # EXPORT
 
 with b4:
@@ -397,6 +503,8 @@ if st.session_state.current_user == "Admin":
 
         st.info("No logged hours yet.")
 
+
+if st.session_state.current_user == "Admin":
 # ==========================
 # LOGOUT
 # ==========================
