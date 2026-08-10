@@ -142,15 +142,15 @@ new_job = st.selectbox(
 )
 
 
-    new_type = st.selectbox(
-        "New Job Type",
-        [
-            "Installation",
-            "Preventative Maintanence",
-            "Service Call",
-            "Other"
-        ]
-    )
+new_type = st.selectbox(
+    "New Job Type",
+    [
+        "Installation",
+        "Preventative Maintanence",
+        "Service Call",
+        "Other"
+    ]
+)
 
     col1, col2 = st.columns(2)
 
