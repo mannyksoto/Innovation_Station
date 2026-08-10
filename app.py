@@ -523,11 +523,27 @@ if st.session_state.current_user == "Admin":
                     "Site already exists."
                 )
 
-    st.write("Current Sites")
+ st.write("Current Sites")
 
-    for site in sites:
+for site in sites:
 
-        st.write(f"• {site}")
+    col1, col2 = st.columns([4, 1])
+
+    with col1:
+        st.write(site)
+
+    with col2:
+
+        if st.button(
+            "Delete",
+            key=f"delete_site_{site}"
+        ):
+
+            sites.remove(site)
+
+            save_sites(sites)
+
+            st.rerun()
 
     # ==========================
     # MANAGE JOB NUMBERS
