@@ -293,16 +293,13 @@ col1, col2, col3 = st.columns(3)
 with col1:
     job_site = st.selectbox(
         "Job Site",
-        ["Clarity"]
+        load_sites()
     )
 
 with col2:
     job_number = st.selectbox(
         "Job Number",
-        [
-            "Clarityadmin",
-            "Clarity Drivetime"
-        ]
+        load_jobs()
     )
 
 with col3:
@@ -425,34 +422,26 @@ if b3.button(
                     "Site already exists."
                 )
 
-    st.write("Current Sites")
+    st.write("Current Job Numbers")
 
-    for site in sites:
-        st.write(f"• {site}")
+for job in jobs:
 
-    st.divider()
-    st.subheader("Manage Job Numbers")
+    col1, col2 = st.columns([4, 1])
 
-    jobs = load_jobs()
+    with col1:
+        st.write(job)
 
-    new_job = st.text_input(
-        "New Job Number"
-    )
+    with col2:
+        if st.button(
+            "Delete",
+            key=f"delete_job_{job}"
+        ):
 
-    if st.button("Add Job Number"):
-        if new_job:
+            jobs.remove(job)
 
-            if new_job not in jobs:
-                jobs.append(new_job)
+            save_jobs(jobs)
 
-                save_jobs(jobs)
-
-                st.success(
-                    f"{new_job} added successfully."
-                )
-
-                st.rerun()
-
+            st.rerun()
             else:
                 st.warning(
                     "Job number already exists."
