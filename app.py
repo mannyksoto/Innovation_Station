@@ -152,7 +152,7 @@ new_type = st.selectbox(
     ]
 )
 
-    col1, col2 = st.columns(2)
+col1, col2 = st.columns(2)
 
     with col1:
 
