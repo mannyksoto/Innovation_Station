@@ -566,9 +566,24 @@ if st.session_state.current_user == "Admin":
 
     st.write("Current Job Numbers")
 
-    for job in jobs:
+for job in jobs:
 
-        st.write(f"• {job}")
+    col1, col2 = st.columns([4, 1])
+
+    with col1:
+        st.write(job)
+
+    with col2:
+        if st.button(
+            "Delete",
+            key=f"delete_job_{job}"
+        ):
+
+            jobs.remove(job)
+
+            save_jobs(jobs)
+
+            st.rerun()
 
 
 
