@@ -478,9 +478,6 @@ with b4:
                 use_container_width=True
             )
 
-
-
-
 # ==========================
 # ADMIN HISTORY ONLY
 # ==========================
@@ -500,11 +497,95 @@ if st.session_state.current_user == "Admin":
         )
 
     else:
-
         st.info("No logged hours yet.")
 
+    # ==========================
+    # MANAGE JOB SITES
+    # ==========================
 
-if st.session_state.current_user == "Admin":
+    st.divider()
+    st.subheader("Manage Job Sites")
+
+    sites = load_sites()
+
+    new_site = st.text_input(
+        "New Job Site"
+    )
+
+    if st.button("Add Site"):
+
+        if new_site:
+
+            if new_site not in sites:
+
+                sites.append(new_site)
+
+                save_sites(sites)
+
+                st.success(
+                    f"{new_site} added successfully."
+                )
+
+                st.rerun()
+
+            else:
+
+                st.warning(
+                    "Site already exists."
+                )
+
+    st.write("Current Sites")
+
+    for site in sites:
+
+        st.write(f"• {site}")
+
+    # ==========================
+    # MANAGE JOB NUMBERS
+    # ==========================
+
+    st.divider()
+    st.subheader("Manage Job Numbers")
+
+    jobs = load_jobs()
+
+    new_job = st.text_input(
+        "New Job Number"
+    )
+
+    if st.button("Add Job Number"):
+
+        if new_job:
+
+            if new_job not in jobs:
+
+                jobs.append(new_job)
+
+                save_jobs(jobs)
+
+                st.success(
+                    f"{new_job} added successfully."
+                )
+
+                st.rerun()
+
+            else:
+
+                st.warning(
+                    "Job number already exists."
+                )
+
+    st.write("Current Job Numbers")
+
+    for job in jobs:
+
+        st.write(f"• {job}")
+
+
+
+
+
+
 # ==========================
 # LOGOUT
 # ==========================
