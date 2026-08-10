@@ -429,6 +429,7 @@ if st.session_state.current_user == "Admin":
         )
 
     else:
+
         st.info("No logged hours yet.")
 
     # ==========================
@@ -441,10 +442,14 @@ if st.session_state.current_user == "Admin":
     sites = load_sites()
 
     new_site = st.text_input(
-        "New Job Site"
+        "New Job Site",
+        key="new_site"
     )
 
-    if st.button("Add Site"):
+    if st.button(
+        "Add Site",
+        key="add_site"
+    ):
 
         if new_site:
 
@@ -454,39 +459,29 @@ if st.session_state.current_user == "Admin":
 
                 save_sites(sites)
 
-                st.success(
-                    f"{new_site} added successfully."
-                )
-
                 st.rerun()
 
-            else:
+    st.write("Current Sites")
 
-                st.warning(
-                    "Site already exists."
-                )
+    for site in sites:
 
-st.write("Current Sites")
+        col1, col2 = st.columns([5, 1])
 
-for site in sites:
+        with col1:
+            st.write(site)
 
-    col1, col2 = st.columns([4, 1])
+        with col2:
 
-    with col1:
-        st.write(site)
+            if st.button(
+                "Delete",
+                key=f"delete_site_{site}"
+            ):
 
-    with col2:
+                sites.remove(site)
 
-        if st.button(
-            "Delete",
-            key=f"delete_site_{site}"
-        ):
+                save_sites(sites)
 
-            sites.remove(site)
-
-            save_sites(sites)
-
-            st.rerun()
+                st.rerun()
 
     # ==========================
     # MANAGE JOB NUMBERS
@@ -498,10 +493,14 @@ for site in sites:
     jobs = load_jobs()
 
     new_job = st.text_input(
-        "New Job Number"
+        "New Job Number",
+        key="new_job"
     )
 
-    if st.button("Add Job Number"):
+    if st.button(
+        "Add Job Number",
+        key="add_job"
+    ):
 
         if new_job:
 
@@ -511,43 +510,29 @@ for site in sites:
 
                 save_jobs(jobs)
 
-                st.success(
-                    f"{new_job} added successfully."
-                )
-
                 st.rerun()
-
-            else:
-
-                st.warning(
-                    "Job number already exists."
-                )
 
     st.write("Current Job Numbers")
 
-for job in jobs:
+    for job in jobs:
 
-    col1, col2 = st.columns([4, 1])
+        col1, col2 = st.columns([5, 1])
 
-    with col1:
-        st.write(job)
+        with col1:
+            st.write(job)
 
-    with col2:
-        if st.button(
-            "Delete",
-            key=f"delete_job_{job}"
-        ):
+        with col2:
 
-            jobs.remove(job)
+            if st.button(
+                "Delete",
+                key=f"delete_job_{job}"
+            ):
 
-            save_jobs(jobs)
+                jobs.remove(job)
 
-            st.rerun()
+                save_jobs(jobs)
 
-
-
-
-
+                st.rerun()
 
 # ==========================
 # LOGOUT
