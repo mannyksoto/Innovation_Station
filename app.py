@@ -132,31 +132,33 @@ def save_jobs(jobs):
 def transfer_dialog():
 
     new_site = st.selectbox(
-    "Job Site",
-    load_sites()
-)
+        "Job Site",
+        load_sites()
+    )
 
-new_job = st.selectbox(
-    "Job Number",
-    load_jobs()
-)
+    new_job = st.selectbox(
+        "Job Number",
+        load_jobs()
+    )
 
+    new_type = st.selectbox(
+        "New Job Type",
+        [
+            "Installation",
+            "Preventative Maintenance",
+            "Service Call",
+            "Other"
+        ]
+    )
 
-new_type = st.selectbox(
-    "New Job Type",
-    [
-        "Installation",
-        "Preventative Maintanence",
-        "Service Call",
-        "Other"
-    ]
-)
-
-col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
     with col1:
 
-        if st.button("Submit Transfer", type="primary"):
+        if st.button(
+            "Submit Transfer",
+            type="primary"
+        ):
 
             end = now()
 
@@ -180,8 +182,6 @@ col1, col2 = st.columns(2)
             ]
 
             save_row(row)
-
-            # immediately begin new job
 
             st.session_state.clock_in_time = now()
             st.session_state.active_job_site = new_site
